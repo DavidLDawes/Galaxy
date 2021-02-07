@@ -1,0 +1,8 @@
+module github.com/davidldawes/galaxy
+
+go 1.15
+
+require (
+	fyne.io/fyne/v2 v2.0.0
+	github.com/spaolacci/murmur3 v1.1.0
+)
