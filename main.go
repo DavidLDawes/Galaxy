@@ -10,7 +10,7 @@ func main() {
 	a := app.New()
 	a.Settings().SetTheme(theme.DarkTheme())
 	w := a.NewWindow("Galaxy")
-	controlsInit()
+	controlsInit(&w)
 	w.Resize(fyne.NewSize(1000, 1000))
 	w.SetContent(Show(w))
 	w.ShowAndRun()
