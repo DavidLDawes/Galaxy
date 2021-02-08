@@ -13,13 +13,15 @@ Next add logc to handle viewport vs. sector misalignment.
 
 
 
-Start by supporting more sectors along 1 axis in the viewport.
-1. X Axis: Handle misalignment of sector with window. Cases are start (skip to start on viewport, insert all stars w/ offset, continue), stops (skip pre-beginning of viewport stars, - offset stars, finsh and stop short), continues (skip pre-beginning of viewport stars, finish stars, continue), completes (offset stars to viewport scaling down, finish stars, done).
-2. X Axis: Add outer loop across sectors
-3. X Axis: Handle window < sector, easier - as above but no completes case.
-4. Repeat 1-3 for Y axis
-5. Add rotation on X axis
-6. Add rotation on T axis
-7. Add rotation on Z axis
-8. Add perspective
-9. Add > 1 Z depth (as above, need to include fraction of Z above us in this sector plus additional sectors and a final ending sector, or smaller without middle or ven smallest wtihin < a single sector - but that can still crtoss sector boundaries) 
+Virtualized the interface, it now loops through sectors drawing the window.
+
+Next Up:
+1. Add rotation on X axis
+2. Add rotation on Y axis
+3. Add rotation on Z axis
+4. Support X-Z view
+4. Support Y-Z view
+4. Support Multiple views
+5. Add perspective
+6. Add > 100 Z depth 
+ 

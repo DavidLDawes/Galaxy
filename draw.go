@@ -12,17 +12,18 @@ import (
 
 type named struct {
 	name  string
-	value int32
+	value uint32
+	index uint32
 }
 
 // Controls
 // Zoom selector
 const (
 	zoomString        = "100"
-	defaultZoom       = int32(100)
+	defaultZoom       = uint32(100)
 	defaultZoomString = zoomString
 	stepString        = "10"
-	defaultStep       = float32(10.0)
+	defaultStep       = uint32(10)
 	defaultStepString = stepString
 )
 
@@ -60,34 +61,37 @@ var (
 	scaleFactor         = float32(scale) / float32(lightyearsPerSector)
 
 	zooms []named = []named{
-		{"1", 1},
-		{"3", 3},
-		{"10", 10},
-		{"32", 32},
-		{"100", 100},
-		{"316", 316},
-		{"1000", 1000},
-		{"3162", 3162},
-		{"10000", 10000},
+		{"1", 1, 0},
+		{"3", 3, 1},
+		{"10", 10, 2},
+		{"32", 32, 3},
+		{"100", 100, 4},
+		{"316", 316, 5},
+		{"1000", 1000, 6},
+		{"3162", 3162, 7},
 	}
 )
 
 
-func zoomNameToValue(name string) int32 {
+func zoomNameToValue(name string) uint32 {
 	return nameToValue(name, defaultZoom)
 }
 
 
-func stepNameToValue(name string) int32 {
-	return nameToValue(name, int32(defaultStep))
+func stepNameToValue(name string) uint32 {
+	return nameToValue(name, uint32(defaultStep))
 }
 
-func nameToValue(name string, defaultValue int32) int32 {
+var zoomIndex = uint32(4)
+
+func nameToValue(name string, defaultValue uint32) uint32 {
 	for _, nextZoom := range zooms {
 		if name == nextZoom.name {
+			zoomIndex = nextZoom.index
 			return nextZoom.value
 		}
 	}
+	zoomIndex = 4
 	return defaultValue
 }
 
@@ -133,11 +137,11 @@ func controlsInit(inWindow *fyne.Window) {
 
 func selectZoom(selection string) {
 	zoom = zoomNameToValue(selection)
-	viewPort.Refresh()
+	Show(*window)
 }
 
 func selectStep(selection string) {
-	step = float32(stepNameToValue(selection))
+	step = stepNameToValue(selection)
 	viewPort.Refresh()
 }
 
@@ -147,8 +151,18 @@ func getCircle(fromStar star) *canvas.Circle {
 	starCircle.FillColor = fromStar.brightcolor
 	starCircle.StrokeColor = fromStar.brightcolor
 	starCircle.StrokeWidth = 1
-	starCircle.Resize(fyne.NewSize(float32(fromStar.pixels), float32(fromStar.pixels)))
-	starCircle.Move(fyne.NewPos(scaleFactor*fromStar.sx, scaleFactor*fromStar.sy))
+	fudgePixels := float32(1.0)
+	if zoomIndex > 4 {
+		fudgePixels = fudgePixels / 2.0
+	}
+	if zoomIndex > 5 {
+		fudgePixels = fudgePixels / 2.0
+	}
+	if zoomIndex > 6 {
+		fudgePixels = fudgePixels / 2.0
+	}
+	starCircle.Resize(fyne.NewSize(float32(fromStar.pixels)*fudgePixels, float32(fromStar.pixels)*fudgePixels))
+	starCircle.Move(fyne.NewPos(fromStar.dx, fromStar.dy))
 
 	return starCircle
 }
@@ -192,7 +206,7 @@ func (s *starLayout) makeStarContainer(rectangle *canvas.Rectangle) *fyne.Contai
 	rectangle.Resize(windowSize)
 	rectangle.Move(origin)
 	starContainer.Objects = append(starContainer.Objects, rectangle)
-	for _, star := range getSectorDetails(currentSector) {
+	for _, star := range getGalaxyDetails() {
 		nextCircle := *getCircle(star)
 		s.starCircles = append(s.starCircles, &nextCircle)
 		starContainer.Objects = append(starContainer.Objects, &nextCircle)
@@ -210,8 +224,8 @@ func xSInc() {
 		here.x = xmax
 	}
 	setPosition()
-	Show(*window)
 	xLabel.SetText(fmt.Sprintf("X position\n%f", here.x))
+	Show(*window)
 }
 
 func xSDec() {
@@ -220,8 +234,8 @@ func xSDec() {
 		here.x = 0
 	}
 	setPosition()
-	Show(*window)
 	xLabel.SetText(fmt.Sprintf("X position\n%f", here.x))
+	Show(*window)
 }
 
 func ySInc() {
@@ -230,8 +244,8 @@ func ySInc() {
 		here.y = ymax
 	}
 	setPosition()
-	Show(*window)
 	yLabel.SetText(fmt.Sprintf("Y position\n%f", here.x))
+	Show(*window)
 }
 
 func ySDec() {
@@ -240,8 +254,8 @@ func ySDec() {
 		here.y = 0
 	}
 	setPosition()
-	Show(*window)
 	yLabel.SetText(fmt.Sprintf("Y position\n%f", here.x))
+	Show(*window)
 }
 
 func zSInc() {
@@ -250,8 +264,8 @@ func zSInc() {
 		here.z = zmax
 	}
 	setPosition()
-	Show(*window)
 	zLabel.SetText(fmt.Sprintf("Z position\n%f", here.x))
+	Show(*window)
 }
 
 func zSDec() {
@@ -260,8 +274,8 @@ func zSDec() {
 		here.z = 0
 	}
 	setPosition()
-	Show(*window)
 	zLabel.SetText(fmt.Sprintf("Z position\n%f", here.x))
+	Show(*window)
 }
 
 func setPosition() {
