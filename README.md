@@ -1,14 +1,14 @@
 # Galaxy
 Porting some old JS code that created a procedurally generated galaxy.
 
-Fairly huge number of stars (approximately Milky Way's worth) over roughly the Milky Way's volume, but random (without structure like arms etc.).
+Fairly huge number of stars (approximately Milky Way's worth) over roughly the Milky Way's volume, but random1m (without structure like arms etc.).
 
 The portion of each class of stars is about correct.
 
 ## So Far
-Got it showing a single sector that maps to the miniumum window.
+Got it showing a single sector that maps to the minimum window.
 
-Next add logc to handle viewport vs. sector misalignment.
+Added logic to handle viewport vs. sector misalignment and scaling up to a point.
 
 
 

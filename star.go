@@ -10,55 +10,54 @@ import (
 )
 
 const (
-	xmin = 0
-	xmax = 100000
-	ymin = 0
-	ymax = 100000
-	zmin = 0
-	zmax = 25000
-	xadj = 100
-	yadj = 100
-	zadj = 100
-	starsPerMegaCubicLY = float32(4023.728813559)
+	xMin = 0
+	xMax = 100000
+	yMin = 0
+	yMax = 100000
+	zMin = 0
+	zMax = 25000
+	xAdj = 100
+	yAdj = 100
+	zAdj = 100
 )
 
-type classdetails struct {
+type classDetails struct {
 	class       string
-	brightcolor color.RGBA
-	medcolor    color.RGBA
-	dimcolor    color.RGBA
+	brightColor color.RGBA
+	medColor    color.RGBA
+	dimColor    color.RGBA
 	odds        float32
 	fudge       float32
-	minmass     float32
-	deltamass   float32
-	minradii    float32
-	deltaradii  float32
-	minlum      float32
-	deltalum    float32
+	minMass     float32
+	deltaMass   float32
+	minRadii    float32
+	deltaRadii  float32
+	minLum      float32
+	deltaLum    float32
 	pixels      int32
 }
 
 type star struct {
 	class       string
-	brightcolor color.RGBA
-	medcolor    color.RGBA
-	dimcolor    color.RGBA
+	brightColor color.RGBA
+	medColor    color.RGBA
+	dimColor    color.RGBA
 	pixels      int32
 	mass        float32
 	radii       float32
-	lumens      float32
-	// 3D postion
-	x           float32
-	y           float32
-	z           float32
+	luminance   float32
+	// 3D position
+	x float32
+	y float32
+	z float32
 	// sector location, 0 <= sx, sy, sz < 100
-	sx          float32
-	sy          float32
-	sz          float32
+	sx float32
+	sy float32
+	sz float32
 	// display location, 0 <= dx, dy, dz < 1000
-	dx          float32
-	dy          float32
-	dz          float32
+	dx float32
+	dy float32
+	dz float32
 }
 
 type sector struct {
@@ -74,170 +73,168 @@ type position struct {
 }
 
 var (
-	bright    = uint8(255)
-	mixbright = uint8(bright * 165 / 255)
-	tween     = uint8(228)
-	med       = uint8(196)
-	mixmed    = uint8(med * 165 / 255)
-	dim       = uint8(128)
-	mixdim    = uint8(dim * 165 / 255)
-	submix    = uint8(99)
+	bright = uint8(math.MaxUint8)
+	tween  = uint8(sevenEighths)
+	med    = uint8(threeQuarters)
+	dim    = uint8(half)
 
-	classO classdetails = classdetails{
+	classO = classDetails{
 		class:       "O",
-		brightcolor: color.RGBA{dim, dim, bright, 255},
-		medcolor:    color.RGBA{dim / 2, dim / 2, med, 255},
-		dimcolor:    color.RGBA{dim / 4, dim / 4, dim, 255},
+		brightColor: color.RGBA{R: 0, G: 0, B: bright, A: opaque},
+		medColor:    color.RGBA{R: 0, G: 0, B: bright, A: opaque},
+		dimColor:    color.RGBA{R: 0, G: 0, B: med, A: opaque},
 		odds:        .0000003,
 		fudge:       .0000000402,
-		minmass:     16.00001,
-		deltamass:   243.2,
-		minradii:    6,
-		deltaradii:  17.3,
-		minlum:      30000,
-		deltalum:    147000.2,
+		minMass:     16.00001,
+		deltaMass:   243.2,
+		minRadii:    6,
+		deltaRadii:  17.3,
+		minLum:      30000,
+		deltaLum:    147000.2,
 		pixels:      11,
 	}
 
-
-	classB classdetails = classdetails{
+	classB = classDetails{
 		class:       "B",
-		brightcolor: color.RGBA{dim / 2, dim / 2, bright, 255},
-		medcolor:    color.RGBA{dim / 4, dim / 4, med, 255},
-		dimcolor:    color.RGBA{dim / 8, dim / 8, dim, 255},
-		odds:        .0013,
-		fudge:       .0003,
-		minmass:     2.1,
-		deltamass:   13.9,
-		minradii:    1.8,
-		deltaradii:  4.8,
-		minlum:      25,
-		deltalum:    29975,
-		pixels:      8,
+		brightColor: color.RGBA{R: dim, G: dim, B: bright, A: opaque},
+		medColor:    color.RGBA{R: dim / fudgeFactor, G: dim / fudgeFactor, B: med, A: opaque},
+		dimColor: color.RGBA{
+			R: dim / (fudgeFactor * fudgeFactor),
+			G: dim / (fudgeFactor * fudgeFactor), B: dim, A: opaque,
+		},
+		odds:       .0013,
+		fudge:      .0003,
+		minMass:    2.1,
+		deltaMass:  13.9,
+		minRadii:   1.8,
+		deltaRadii: 4.8,
+		minLum:     25,
+		deltaLum:   29975,
+		pixels:     8,
 	}
 
-	classA classdetails = classdetails{
+	classA = classDetails{
 		class:       "A",
-		brightcolor: color.RGBA{bright, bright, bright, 255},
-		medcolor:    color.RGBA{med, med, med, 255},
-		dimcolor:    color.RGBA{dim, dim, dim, 255},
+		brightColor: color.RGBA{R: bright, G: bright, B: bright, A: opaque},
+		medColor:    color.RGBA{R: med, G: med, B: med, A: opaque},
+		dimColor:    color.RGBA{R: dim, G: dim, B: dim, A: opaque},
 		odds:        .006,
 		fudge:       .0018,
-		minmass:     1.4,
-		deltamass:   .7,
-		minradii:    1.4,
-		deltaradii:  .4,
-		minlum:      5,
-		deltalum:    20,
+		minMass:     1.4,
+		deltaMass:   .7,
+		minRadii:    1.4,
+		deltaRadii:  .4,
+		minLum:      5,
+		deltaLum:    20,
 		pixels:      6,
 	}
 
-	classF classdetails = classdetails{
+	classF = classDetails{
 		class:       "F",
-		brightcolor: color.RGBA{bright, bright, 0, 255},
-		medcolor:    color.RGBA{tween, tween, 0, 255},
-		dimcolor:    color.RGBA{med, med, 0, 255},
+		brightColor: color.RGBA{R: bright, G: bright, B: tween, A: opaque},
+		medColor:    color.RGBA{R: tween, G: tween, B: dim, A: opaque},
+		dimColor:    color.RGBA{R: med, G: med, B: dim / fudgeFactor, A: opaque},
 		odds:        .03,
 		fudge:       .012,
-		minmass:     1.04,
-		deltamass:   .36,
-		minradii:    1.15,
-		deltaradii:  .25,
-		minlum:      1.5,
-		deltalum:    3.5,
+		minMass:     1.04,
+		deltaMass:   .36,
+		minRadii:    1.15,
+		deltaRadii:  .25,
+		minLum:      1.5,
+		deltaLum:    3.5,
 		pixels:      5,
 	}
 
-	classG classdetails = classdetails{
+	classG = classDetails{
 		class:       "G",
-		brightcolor: color.RGBA{tween, tween, 0, 255},
-		medcolor:    color.RGBA{med, med, 0, 255},
-		dimcolor:    color.RGBA{dim, dim, 0, 255},
+		brightColor: color.RGBA{R: tween, G: tween, B: 0, A: opaque},
+		medColor:    color.RGBA{R: med, G: med, B: 0, A: opaque},
+		dimColor:    color.RGBA{R: dim, G: dim, B: 0, A: opaque},
 		odds:        .076,
 		fudge:       .01102,
-		minmass:     .8,
-		deltamass:   .24,
-		minradii:    .96,
-		deltaradii:  .19,
-		minlum:      .6,
-		deltalum:    .9,
+		minMass:     .8,
+		deltaMass:   .24,
+		minRadii:    .96,
+		deltaRadii:  .19,
+		minLum:      .6,
+		deltaLum:    .9,
 		pixels:      4,
 	}
 
-	classK classdetails = classdetails{
+	classK = classDetails{
 		class:       "K",
-		brightcolor: color.RGBA{bright, submix, 0, 255},
-		medcolor:    color.RGBA{med, uint8(submix * med / 255), 0, 255},
-		dimcolor:    color.RGBA{dim, uint8(submix * dim / 255), 0, 255},
+		brightColor: color.RGBA{R: 0xFE, G: 0xD8, B: 0xB1, A: opaque},
+		medColor:    color.RGBA{R: 3 * (0xFE / 4), G: 3 * (0xD8 / 4), B: 3 * (0xB1 / 4), A: opaque},
+		dimColor:    color.RGBA{R: 0xFE / 2, G: uint8(0xD8) / fudgeFactor, B: uint8(0xB1) / fudgeFactor, A: opaque},
 		odds:        .121,
 		fudge:       .042,
-		minmass:     .45,
-		deltamass:   .35,
-		minradii:    .7,
-		deltaradii:  .26,
-		minlum:      .08,
-		deltalum:    .52,
+		minMass:     .45,
+		deltaMass:   .35,
+		minRadii:    .7,
+		deltaRadii:  .26,
+		minLum:      .08,
+		deltaLum:    .52,
 		pixels:      3,
 	}
 
-	classM classdetails = classdetails{
+	classM = classDetails{
 		class:       "M",
-		brightcolor: color.RGBA{bright, 0, 0, 255},
-		medcolor:    color.RGBA{med, 0, 0, 255},
-		dimcolor:    color.RGBA{dim, 0, 0, 255},
+		brightColor: color.RGBA{R: bright, G: 0, B: 0, A: opaque},
+		medColor:    color.RGBA{R: med, G: 0, B: 0, A: opaque},
+		dimColor:    color.RGBA{R: dim, G: 0, B: 0, A: opaque},
 		odds:        .7645,
 		fudge:       .04,
-		minmass:     1.04,
-		deltamass:   .36,
-		minradii:    1.15,
-		deltaradii:  .25,
-		minlum:      1.5,
-		deltalum:    3.5,
+		minMass:     1.04,
+		deltaMass:   .36,
+		minRadii:    1.15,
+		deltaRadii:  .25,
+		minLum:      1.5,
+		deltaLum:    3.5,
 		pixels:      2,
 	}
 
-	starDetailsByClass = [7]classdetails{classO, classB, classA, classF, classG, classK, classM}
-	classByZoom = [8]int{7, 7, 7, 7, 7, 3, 2, 2}
+	starDetailsByClass = [7]classDetails{classO, classB, classA, classF, classG, classK, classM}
+	classByZoom        = [11]int{7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2}
 )
 
-func getStarDetails(classDetails classdetails, sector sector, random *rand.Rand) []star {
+func getStarDetails(classDetails classDetails, sector sector, random1m *rand.Rand) []star {
 	stars := make([]star, 0)
-	loopsize := int32(423.728813559 * (classDetails.odds - classDetails.fudge + 2*classDetails.fudge*random.Float32()))
-	for i := 0; i < int(loopsize); i++ {
-		nextstar := star{}
-		rando := random.Float32()
-		nextstar.sx = random.Float32() * xadj
-		nextstar.sy = random.Float32() * yadj
-		nextstar.sz = random.Float32() * zadj
-		nextstar.x = float32(sector.x)*xadj + nextstar.sx
-		nextstar.y = float32(sector.y)*yadj + nextstar.sy
-		nextstar.z = float32(sector.z)*zadj + nextstar.sz
-		nextstar.class = classDetails.class
-		nextstar.brightcolor = classDetails.brightcolor
-		nextstar.dimcolor = classDetails.dimcolor
-		nextstar.mass = classDetails.minmass + classDetails.deltamass*(1+rando)
-		nextstar.radii = classDetails.minradii + rando*classDetails.deltaradii
-		nextstar.lumens = classDetails.minlum + rando*classDetails.deltalum
-		nextstar.pixels = classDetails.pixels
-		stars = append(stars, nextstar)
+	loopSize := int32(423.728813559 * (classDetails.odds - classDetails.fudge + 2*classDetails.fudge*random1m.Float32()))
+	for i := 0; i < int(loopSize); i++ {
+		nextStar := star{}
+		random1 := random1m.Float32()
+		nextStar.sx = random1m.Float32() * xAdj
+		nextStar.sy = random1m.Float32() * yAdj
+		nextStar.sz = random1m.Float32() * zAdj
+		nextStar.x = float32(sector.x)*xAdj + nextStar.sx
+		nextStar.y = float32(sector.y)*yAdj + nextStar.sy
+		nextStar.z = float32(sector.z)*zAdj + nextStar.sz
+		nextStar.class = classDetails.class
+		nextStar.brightColor = classDetails.brightColor
+		nextStar.dimColor = classDetails.dimColor
+		nextStar.mass = classDetails.minMass + classDetails.deltaMass*(1+random1)
+		nextStar.radii = classDetails.minRadii + random1*classDetails.deltaRadii
+		nextStar.luminance = classDetails.minLum + random1*classDetails.deltaLum
+		nextStar.pixels = classDetails.pixels
+		stars = append(stars, nextStar)
 	}
+
 	return stars
 }
 
-func getSectorDetails(fromSector sector, xtrim float32) []star {
+func getSectorDetails(fromSector sector) []star {
 	result := make([]star, 0)
-	random := getHash(fromSector)
+	random1m := getHash(fromSector)
 	classCount := 0
 	for _, starDetails := range starDetailsByClass {
-		nextClass := getStarDetails(starDetails, fromSector, random)
-		for _, classStar := range nextClass {
-			result = append(result, classStar)
-		}
+		nextClass := getStarDetails(starDetails, fromSector, random1m)
+		result = append(result, nextClass...)
 		classCount++
 		if classCount > classByZoom[zoomIndex] {
 			break
 		}
 	}
+
 	return result
 }
 
@@ -248,12 +245,12 @@ type saveDetails struct {
 	init         bool
 }
 
-var lastDetails saveDetails = saveDetails{
+var lastDetails = saveDetails{
 	position{50000, 50000, 12500},
 	100, make([]star, 0), false,
 }
 
-func getGalaxyDetails() ([]star) {
+func getGalaxyDetails() []star {
 	if lastDetails.init {
 		if here.x == lastDetails.savePosition.x &&
 			here.y == lastDetails.savePosition.y &&
@@ -261,7 +258,6 @@ func getGalaxyDetails() ([]star) {
 			zoom == lastDetails.saveZoom {
 			return lastDetails.saveStars
 		}
-
 	}
 	xMin := here.x
 	yMin := here.y
@@ -270,7 +266,7 @@ func getGalaxyDetails() ([]star) {
 	yMax := here.y + float32(zoom)
 	zMax := here.z + float32(zoom)
 
-	resultStars := make([]star , 0)
+	resultStars := make([]star, 0)
 
 	var extraX, extraY uint32
 	if math.Mod(float64(xMin), float64(scale)) != 0 {
@@ -283,21 +279,21 @@ func getGalaxyDetails() ([]star) {
 	} else {
 		extraY = 0
 	}
-	for xi := uint32(0); 100*xi < uint32(xMax - xMin) + extraX; xi++ {
-		xtrim := float32(100*xi)
-		for yi := uint32(0); 100*yi < uint32(yMax - yMin) + extraY; yi++ {
-			for zi := uint32(0); 100*zi < uint32(zMax - zMin); zi++ {
+	for xi := uint32(0); 100*xi < uint32(xMax-xMin)+extraX; xi++ {
+		for yi := uint32(0); 100*yi < uint32(yMax-yMin)+extraY; yi++ {
+			for zi := uint32(0); 100*zi < uint32(zMax-zMin); zi++ {
 				for _, star := range getSectorDetails(getSectorFromPosition(
-					position{here.x + 100.0*float32(xi),
+					position{
+						here.x + 100.0*float32(xi),
 						here.y + 100.0*float32(yi),
-						here.z + 100.0*float32(zi)}),
-						xtrim) {
+						here.z + 100.0*float32(zi),
+					})) {
 					if !(star.x < xMin) && !(star.x > xMax) &&
 						!(star.y < yMin) && !(star.y > yMax) &&
 						!(star.z < zMin) && !(star.z > zMax) {
-						star.dx = (star.x - xMin)*1000/(xMax - xMin)
-						star.dy = (star.y - yMin)*1000/(yMax - yMin)
-						star.dz = (star.z - zMin)*1000/(zMax - zMin)
+						star.dx = (star.x - xMin) * 1000 / (xMax - xMin)
+						star.dy = (star.y - yMin) * 1000 / (yMax - yMin)
+						star.dz = (star.z - zMin) * 1000 / (zMax - zMin)
 						resultStars = append(resultStars, star)
 					}
 				}
@@ -315,18 +311,29 @@ func getGalaxyDetails() ([]star) {
 }
 
 func getSectorFromPosition(now position) sector {
-	return sector{uint32(now.x/100), uint32(now.y/100), uint32(now.z/100)}
+	return sector{uint32(now.x / 100), uint32(now.y / 100), uint32(now.z / 100)}
 }
 
 func getHash(aSector sector) *rand.Rand {
 	id := murmur3.New64()
-	var buf []byte = make([]byte, 4)
-	binary.LittleEndian.PutUint32(buf[:], aSector.x)
-	id.Write(buf)
-	binary.LittleEndian.PutUint32(buf[:], aSector.y)
-	id.Write(buf)
-	binary.LittleEndian.PutUint32(buf[:], aSector.z)
-	id.Write(buf)
+	buf := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf, aSector.x)
+	_, err := id.Write(buf)
+	if err != nil {
+		print("Failed to hash part 1")
+	}
 
-	return rand.New(rand.NewSource(int64(id.Sum64()))) //nolint:gosec
+	binary.LittleEndian.PutUint32(buf, aSector.y)
+	_, err = id.Write(buf)
+	if err != nil {
+		print("Failed to hash part 2")
+	}
+
+	binary.LittleEndian.PutUint32(buf, aSector.z)
+	_, err = id.Write(buf)
+	if err != nil {
+		print("Failed to hash part 3")
+	}
+
+	return rand.New(rand.NewSource(int64(id.Sum64())))
 }
